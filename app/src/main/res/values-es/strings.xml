@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spanish versions of the texts Android itself shows (app name stays the same). -->
+<resources>
+    <string name="app_name">Alpha Blocker</string>
+    <string name="accessibility_label">Alpha Blocker</string>
+    <string name="accessibility_description">Detecta apps, sitios web y términos de búsqueda bloqueados en este teléfono para que Alpha Blocker pueda cerrarlos. Todo se revisa en el dispositivo; no se envía nada a ningún sitio (la app no tiene permiso de internet). Solo se guardan los minutos de uso de hoy por app.</string>
+    <string name="device_admin_description">Impide que se quite Alpha Blocker mientras la protección está activa.</string>
+</resources>

@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ============================================================================
+  Alpha Blocker — Android manifest
+
+  PRIVACY AUDIT: this file is the single source of truth for what Android
+  allows the app to do. Note what is NOT here:
+    * NO  android.permission.INTERNET          -> the app cannot open any
+                                                  network connection at all.
+    * NO  ACCESS_NETWORK_STATE, contacts, location, storage, microphone, etc.
+  Android enforces this at the OS level: without INTERNET, any socket the
+  app tried to open would fail. Nothing it sees can leave the phone.
+
+  Permissions that ARE requested, and why:
+    * RECEIVE_BOOT_COMPLETED  re-apply protection after a restart.
+    * POST_NOTIFICATIONS      warn you if the blocker service gets switched off.
+    * WRITE_SECURE_SETTINGS   optional, only via ADB: re-enables the blocker
+                              service if it is switched off, and runs the
+                              opt-in banking pause (see below).
+  Special access granted by you during setup (not normal permissions):
+    * Accessibility service   reads app names, browser address bars and typed
+                              search text ON THE DEVICE to detect blocked
+                              content. Nothing is stored except usage minutes.
+    * Device Owner / Device Admin   anti-uninstall and system lockdown.
+  ============================================================================
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--
+      OPTIONAL. Only takes effect if YOU grant it from a computer:
+        adb shell pm grant com.alphablocker android.permission.WRITE_SECURE_SETTINGS
+      Used for exactly two things, both about Alpha Blocker's OWN accessibility
+      service (enforcement/Enforcer.kt, setAccessibility):
+        * turning it back on if it gets switched off while protection is on;
+        * the opt-in banking pause: switching it off for a few minutes so a
+          bank app will open, then back on (enforcement/BankPause.kt).
+      Other apps' accessibility services are never changed. Not granted = unused.
+    -->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!--
+      Package visibility (Android 11+). Instead of the broad QUERY_ALL_PACKAGES
+      permission, we only ask to see:
+        1. apps with a launcher icon   (so you can pick apps to block)
+        2. apps that open web links    (so we can find every browser)
+        3. home-screen apps            (so we never block your launcher)
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+    </queries>
+
+    <!--
+      allowBackup=false + dataExtractionRules: settings are never copied to
+      Google cloud backup NOR to a new phone during device-to-device transfer
+      (on Android 12+, allowBackup alone doesn't stop phone-to-phone copies).
+      This keeps your block lists private and stops a "restore from backup"
+      trick from bringing back an older, weaker configuration.
+    -->
+    <application
+        android:name=".AlphaApp"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AlphaBlocker"
+        tools:targetApi="35">
+
+        <!-- Main settings screen. -->
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          Full-screen "blocked" page with a Bible verse.
+          Own task + excluded from recents so it can't be used to jump back
+          into the blocked app from the recent-apps list. Standard launch mode
+          + FLAG_ACTIVITY_CLEAR_TOP means a new block replaces the old page.
+        -->
+        <activity
+            android:name=".ui.BlockActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity="com.alphablocker.block" />
+
+        <!--
+          "Turn protection back on" popup shown 5 minutes into a banking pause
+          (enforcement/BankPause.kt). Not exported; own task, not in Recents.
+        -->
+        <activity
+            android:name=".ui.ResumeActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.alphablocker.resume"
+            android:theme="@style/Theme.AlphaBlocker.Popup" />
+
+        <!--
+          Device admin / Device Owner receiver. Android talks to this
+          component when the app is made Device Owner (via ADB) or Device
+          Admin (via the on-screen prompt). BIND_DEVICE_ADMIN guarantees only
+          the system can call it.
+        -->
+        <receiver
+            android:name=".enforcement.AdminReceiver"
+            android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+          Watchdog: runs after boot, after app updates, and on a repeating
+          timer to re-apply protection and check the blocker service is on.
+          exported=false: other apps cannot trigger it (system broadcasts
+          like BOOT_COMPLETED are still delivered).
+        -->
+        <receiver
+            android:name=".enforcement.WatchdogReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+          Banking pause timers and the notification's "Turn protection back on"
+          button. exported=false: only this app's own PendingIntents reach it.
+        -->
+        <receiver
+            android:name=".enforcement.BankPauseReceiver"
+            android:exported="false" />
+
+        <!--
+          The on-device blocker. BIND_ACCESSIBILITY_SERVICE guarantees only
+          the Android system can bind to it.
+        -->
+        <service
+            android:name=".service.BlockerService"
+            android:exported="false"
+            android:label="@string/accessibility_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service" />
+        </service>
+    </application>
+</manifest>

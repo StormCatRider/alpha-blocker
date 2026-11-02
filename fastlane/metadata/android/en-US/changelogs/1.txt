@@ -1,0 +1,1 @@
+First release: offline blocker with Device Owner lockdown, delayed loosening, lock period, recovery code, word/page/app blocking, SafeSearch, DNS filter guide, Bible verses, English and Spanish. Optional banking pause for bank apps that refuse to run alongside accessibility apps.

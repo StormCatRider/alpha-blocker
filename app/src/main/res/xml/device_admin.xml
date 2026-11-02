@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Device admin policies requested. The app only needs to *exist* as an admin
+  (Android won't uninstall an active admin without first deactivating it), so
+  no extra policies like "wipe data" or "lock screen" are requested.
+  In Device Owner mode, protection comes from DevicePolicyManager calls in
+  enforcement/PolicyManager.kt, which don't need entries here.
+-->
+<device-admin>
+    <uses-policies />
+</device-admin>

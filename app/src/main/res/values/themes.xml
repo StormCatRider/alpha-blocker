@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Window theme (light). The real UI theme is in ui/Theme.kt (Compose). -->
+<resources>
+    <style name="Theme.AlphaBlocker" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_light</item>
+        <item name="android:statusBarColor">@color/brand_blue</item>
+    </style>
+
+    <!-- See-through window for the "turn protection back on" popup (ui/ResumeActivity.kt).
+         The dimmed backdrop and card are drawn in Compose, so it works in light and dark mode. -->
+    <style name="Theme.AlphaBlocker.Popup" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+    </style>
+</resources>

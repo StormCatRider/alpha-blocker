@@ -1,0 +1,33 @@
+<p>Alpha Blocker es una app de autocontrol privada y sin conexión que te ayuda a alejarte del contenido adulto y de las apps que te hacen perder el tiempo. <b>No tiene permiso de internet</b>: nada de lo que haces sale de tu teléfono.</p>
+
+<p><b>La idea clave:</b> hacer la protección más fuerte es inmediato. Hacerla más débil espera un retraso que tú eliges (por ejemplo 72 horas), así un momento de debilidad pasa antes de que cambie algo. Un periodo de bloqueo fijo opcional congela todo cambio que afloje hasta la fecha que elijas.</p>
+
+<p><b>Bloqueo</b></p>
+<ul>
+<li>Palabras y páginas bloqueadas, revisadas en la barra de direcciones y en las búsquedas (ignora acentos y sustituciones de letras)</li>
+<li>Lista de navegadores permitidos: se bloquea cualquier otro</li>
+<li>SafeSearch forzado (Chrome mediante política en modo Device Owner; reescritura de URL en los demás)</li>
+<li>Reglas por app: siempre bloqueada, horarios o límite diario con algunas extensiones cortas</li>
+<li>Pantallas de ajustes protegidas: cierra las pantallas que podrían desactivar la protección</li>
+</ul>
+
+<p><b>Difícil de quitar</b></p>
+<ul>
+<li>Modo Device Owner (un comando ADB): bloquea desinstalar, restablecer de fábrica, modo seguro, nuevos usuarios y cambios de DNS privado</li>
+<li>Modo Administrador de dispositivo para configurar sin computadora</li>
+<li>Reactivación automática opcional del servicio de bloqueo (un comando ADB)</li>
+<li>Reloj a prueba de cambios: cambiar la fecha no se salta el retraso</li>
+<li>Código de recuperación de un solo uso, en papel, para emergencias reales</li>
+</ul>
+
+
+<p><b>Filtro DNS</b>: explica y configura un filtro DNS familiar (DNS privado), que bloquea sitios para adultos en todas las apps; bloqueado en modo Device Owner.</p>
+<p><b>Pausa para bancos</b> (opcional, apagada por defecto): algunas apps de banco no abren mientras una app instalada fuera de Play Store tiene acceso de accesibilidad. Elige tus apps de banco y ábrelas desde Alpha Blocker con el bloqueador en pausa de 2 a 4 minutos (a tu elección, más 2 si hace falta); luego una ventana te pide volver a activar la protección, que vuelve sola 2 minutos después.</p>
+
+<p><b>Ánimo</b>: la pantalla de bloqueo muestra una pausa de 3 segundos con un versículo bíblico católico (Torres Amat en español, Douay-Rheims en inglés) sobre la pureza o sobre la diligencia y el trabajo. Puedes añadir tus propios versículos.</p>
+
+<p><b>Privada por diseño</b>: sin cuentas, sin estadísticas, sin anuncios, sin registros. Los ajustes no se incluyen en copias de seguridad ni transferencias. El PIN y el código de recuperación solo se guardan como hash con sal. Las pantallas de ajustes bloquean capturas.</p>
+
+<p>Inglés y español.</p>
+
+<p><b>Nota:</b> la app usa un Servicio de accesibilidad para leer nombres de apps, barras de direcciones y búsquedas escritas, solo para compararlos con tus listas en el dispositivo. No se guarda ni se envía nada.</p>

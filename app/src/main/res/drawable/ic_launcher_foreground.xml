@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher icon foreground: white shield with an orange "A". 108dp canvas,
+     artwork kept inside the 66dp safe zone used by adaptive icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Shield -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,26 L78,35 L78,54 C78,68 67,79 54,84 C41,79 30,68 30,54 L30,35 Z" />
+    <!-- Letter A (two legs) -->
+    <path
+        android:fillColor="#FF792E"
+        android:pathData="M54,38 L67,72 L60,72 L54,54 L48,72 L41,72 Z" />
+    <!-- Crossbar of the A -->
+    <path
+        android:fillColor="#FF792E"
+        android:pathData="M47,61 L61,61 L59,66 L49,66 Z" />
+</vector>

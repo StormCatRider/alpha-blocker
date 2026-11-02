@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Alpha Blocker</string>
+    <!-- Name shown in Settings > Accessibility. The protected-screen rules
+         look for "Use Alpha Blocker" on that page, so keep the app name. -->
+    <string name="accessibility_label">Alpha Blocker</string>
+    <string name="accessibility_description">Detects blocked apps, websites and search terms on this phone so Alpha Blocker can close them. Everything is checked on the device; nothing is sent anywhere (the app has no internet permission). Only per-app usage minutes for today are stored.</string>
+    <string name="device_admin_description">Prevents Alpha Blocker from being removed while protection is on.</string>
+</resources>

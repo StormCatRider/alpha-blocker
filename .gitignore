@@ -1,0 +1,11 @@
+.gradle/
+build/
+app/build/
+local.properties
+*.jks
+*.keystore
+.idea/
+
+# Developer unlock private key: NEVER commit
+*.pem
+alphablocker_dev_private*

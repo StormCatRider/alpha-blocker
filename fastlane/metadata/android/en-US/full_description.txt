@@ -1,0 +1,33 @@
+<p>Alpha Blocker is a private, offline self-control app that helps you stay away from adult content and time-wasting apps. It has <b>no internet permission</b>: nothing you do ever leaves your phone.</p>
+
+<p><b>The key idea:</b> making protection stronger is instant. Making it weaker waits for a delay you choose (for example 72 hours), so a weak moment passes before anything changes. An optional fixed lock period freezes every loosening change until a date you pick.</p>
+
+<p><b>Blocking</b></p>
+<ul>
+<li>Blocked words and web pages, checked in browser address bars and typed searches (accent- and look-alike-insensitive)</li>
+<li>Allowed-browsers list: every other browser is blocked</li>
+<li>SafeSearch enforcement (Chrome via managed policy in Device Owner mode; URL rewriting elsewhere)</li>
+<li>Per-app rules: always blocked, scheduled hours, or a daily time limit with a few short extensions</li>
+<li>Protected settings screens: closes the screens that could switch protection off</li>
+</ul>
+
+<p><b>Hard to remove</b></p>
+<ul>
+<li>Device Owner mode (one ADB command): blocks uninstall, factory reset, safe mode, new users and Private DNS changes</li>
+<li>Device Admin mode for setups without a computer</li>
+<li>Optional auto re-enable of the blocker service (one ADB command)</li>
+<li>Tamper-resistant clock: changing the date does not skip a delay</li>
+<li>Single-use paper recovery code for real emergencies</li>
+</ul>
+
+
+<p><b>DNS filter</b>: explains and sets a family DNS filter (Private DNS), which blocks adult sites in every app; locked in Device Owner mode.</p>
+<p><b>Banking pause</b> (optional, off by default): some bank apps refuse to open while a sideloaded app has accessibility access. Pick your bank apps and open them from Alpha Blocker with the blocker paused for 2–4 minutes (your choice, plus 2 more if needed); a popup then asks you to turn protection back on, and it returns by itself 2 minutes later.</p>
+
+<p><b>Encouragement</b>: the block screen shows a 3-second pause with a Catholic Bible verse (Douay-Rheims in English, Torres Amat in Spanish) on purity or on diligence and work. Add your own verses.</p>
+
+<p><b>Private by design</b>: no accounts, no analytics, no ads, no logs. Settings are excluded from backup and device transfer. PIN and recovery code are stored only as salted hashes. Settings screens block screenshots.</p>
+
+<p>English and Spanish.</p>
+
+<p><b>Note:</b> the app uses an Accessibility Service to read app names, browser address bars and typed searches, only to compare them with your lists on the device. Nothing is stored or sent.</p>

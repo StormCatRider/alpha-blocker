@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Brand colors. Compose UI colors live in ui/Theme.kt; these are only used
+     by the launcher icon and the window background before Compose draws. -->
+<resources>
+    <color name="brand_blue">#273DCC</color>
+    <color name="brand_orange">#FF792E</color>
+    <color name="window_light">#FBFBFF</color>
+    <color name="window_dark">#121318</color>
+</resources>

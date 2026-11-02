@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Accessibility service configuration.
+
+  Events received:
+    typeWindowStateChanged   -> which app is in front (for app rules + usage)
+    typeWindowsChanged       -> windows appearing/switching (apps reopened from Recents)
+    typeWindowContentChanged -> address-bar / settings page changes
+    typeViewTextChanged      -> text typed into search boxes / address bars
+
+  canRetrieveWindowContent + flagReportViewIds: needed to read a browser's
+  address bar by its view ID (see core/Browsers.kt).
+
+  Privacy: this data is processed in memory only and never written to disk
+  (see service/BlockerService.kt). The app has no internet permission.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowsChanged|typeWindowContentChanged|typeViewTextChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagReportViewIds|flagRetrieveInteractiveWindows"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/accessibility_description"
+    android:notificationTimeout="200" />

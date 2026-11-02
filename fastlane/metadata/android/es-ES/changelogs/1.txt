@@ -1,0 +1,1 @@
+Primera versión: bloqueador sin conexión con Device Owner, cambios con retraso, periodo de bloqueo, código de recuperación, bloqueo de palabras/páginas/apps, SafeSearch, filtro DNS, versículos bíblicos, inglés y español. Pausa opcional para apps de banco que no funcionan junto a apps de accesibilidad.
