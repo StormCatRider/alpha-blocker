@@ -236,7 +236,7 @@ fun StatusScreen(state: AppState) {
 }
 
 /** The developer's tip page (Status tab › Support Alpha Blocker). */
-private const val DONATE_URL = "https://ko-fi.com/catstormrider"
+private const val DONATE_URL = "https://ko-fi.com/stormcatrider"
 
 @Composable
 private fun Check(label: String, ok: Boolean) {

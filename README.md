@@ -208,7 +208,7 @@ Colors: brand blue `#273DCC` (white text) and orange `#FF792E` (dark text only, 
 
 ## Support
 
-Alpha Blocker is free and always will be. If it helps you and you'd like to support its development, you can leave a tip on [Ko-fi](https://ko-fi.com/catstormrider). The link is also at the bottom of the app's Status tab; it opens in your browser, and the app itself still has no internet access.
+Alpha Blocker is free and always will be. If it helps you and you'd like to support its development, you can leave a tip on [Ko-fi](https://ko-fi.com/stormcatrider). The link is also at the bottom of the app's Status tab; it opens in your browser, and the app itself still has no internet access.
 
 ## License
 
