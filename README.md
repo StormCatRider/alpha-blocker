@@ -2,6 +2,8 @@
 
 A private, offline self-control blocker for Android, built for a Google Pixel on Android 16.
 
+**Website:** [alphablocker.app](https://alphablocker.app) · **Download:** [latest release](https://github.com/StormCatRider/alpha-blocker/releases/latest)
+
 - **No internet permission.** The app cannot send anything anywhere; Android enforces this.
 - **Stronger is instant, weaker waits.** Tightening applies now. Loosening waits for your delay and is frozen during a fixed lock period.
 - **Hard to remove.** Device Owner mode blocks uninstall, factory reset, safe mode, new users, Private Space and Private DNS changes.
