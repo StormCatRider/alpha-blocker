@@ -23,9 +23,13 @@
  * ignore the "click this element" command even though the button is there.
  * A tap on the screen position always works (needs canPerformGestures in
  * res/xml/accessibility_service.xml). The click command is only a fallback.
- * If anything doesn't show up within 5 seconds (another phone layout), it shows
- * a short message, and the block screen appears anyway. If "Force stop" is
- * greyed out, the app is already stopped, so there's nothing to do.
+ * TIMING (App info is a live page):
+ *   * it waits ~0.35 s for the page to finish sliding in before tapping;
+ *   * "Force stop" starts GREYED OUT while Android checks if the app runs, then
+ *     turns on; only if it stays greyed out for 2 s is the app already stopped;
+ *   * if no confirmation appears 1.2 s after a tap, the tap missed: tap again.
+ * If it can't finish within 7 seconds (another phone layout), it shows a short
+ * message, and the block screen appears anyway.
  *
  * Your data in that app (logins, settings, downloads) is NOT touched: Force
  * stop only ends the running app. Never used on Alpha Blocker itself or on apps
@@ -57,6 +61,8 @@ class ForceStopper(private val service: AccessibilityService, private val handle
     private var after: (() -> Unit)? = null
     private var lastTapAt = 0L     // waits a moment after each tap for the screen to react
     private var stopped = false    // true once OK was tapped (or the app was already stopped)
+    private var seenAt = 0L        // when the Force stop button first appeared on screen
+    private var disabledSince = 0L // how long it has stayed greyed out
 
     private val poll = object : Runnable {
         override fun run() {
@@ -85,6 +91,8 @@ class ForceStopper(private val service: AccessibilityService, private val handle
         stage = 1
         stopped = false
         lastTapAt = 0L
+        seenAt = 0L
+        disabledSince = 0L
         after = then
         val opened = runCatching {
             service.startActivity(
@@ -113,14 +121,31 @@ class ForceStopper(private val service: AccessibilityService, private val handle
                     ?: roots.firstNotNullOfOrNull { it.findAccessibilityNodeInfosByViewId("$SETTINGS_PKG:id/button3").firstOrNull() }
                     ?: return
                 val btn = clickableOf(button)
-                if (!btn.isEnabled) { stopped = true; finish(); return } // already stopped
-                if (press(btn)) { stage = 2; lastTapAt = SystemClock.elapsedRealtime() }
+                val now = SystemClock.elapsedRealtime()
+                // Let the page settle before tapping (it's still sliding in at first).
+                if (seenAt == 0L) seenAt = now
+                if (now - seenAt < SETTLE_MS) return
+                // App info shows Force stop GREYED OUT for a moment while it checks
+                // whether the app is running, then enables it. So a greyed-out button
+                // only means "already stopped" if it STAYS greyed out.
+                if (!btn.isEnabled) {
+                    if (disabledSince == 0L) disabledSince = now
+                    if (now - disabledSince > STILL_DISABLED_MS) { stopped = true; finish() }
+                    return
+                }
+                disabledSince = 0L
+                if (press(btn)) { stage = 2; lastTapAt = now }
             }
             2 -> {
                 // The confirmation dialog: "OK"/"Aceptar", or Android's standard positive button.
                 val ok = roots.firstNotNullOfOrNull { findByLabel(it, OK_LABELS) }
                     ?: roots.firstNotNullOfOrNull { it.findAccessibilityNodeInfosByViewId("android:id/button1").firstOrNull() }
-                    ?: return
+                if (ok == null) {
+                    // No confirmation after the tap? The tap missed (page still moving):
+                    // go back and tap Force stop again.
+                    if (SystemClock.elapsedRealtime() - lastTapAt > RETRY_TAP_MS) { stage = 1; seenAt = 0L }
+                    return
+                }
                 if (press(clickableOf(ok))) {
                     stopped = true
                     lastTapAt = SystemClock.elapsedRealtime()
@@ -193,7 +218,10 @@ class ForceStopper(private val service: AccessibilityService, private val handle
         private const val SETTINGS_PKG = "com.android.settings"
         private const val POLL_MS = 150L
         private const val AFTER_TAP_MS = 450L
-        private const val TIMEOUT_MS = 5_000L
+        private const val TIMEOUT_MS = 7_000L
+        private const val SETTLE_MS = 350L          // page slide-in before the first tap
+        private const val STILL_DISABLED_MS = 2_000L // greyed out this long = really stopped
+        private const val RETRY_TAP_MS = 1_200L     // no confirmation this long after a tap = tap again
 
         /** "Force stop" as Pixel Settings writes it (English, Spanish variants). */
         private val FORCE_STOP_LABELS = listOf(

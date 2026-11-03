@@ -1,0 +1,1 @@
+Force stop works every time: waits for the button to become active (App info greys it out for a moment) and re-taps if the confirmation doesn't appear.

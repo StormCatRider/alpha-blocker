@@ -1,0 +1,1 @@
+Forzar detención funciona siempre: espera a que el botón se active (la información de la app lo atenúa un momento) y vuelve a tocar si no aparece la confirmación.
