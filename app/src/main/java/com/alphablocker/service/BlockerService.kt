@@ -20,7 +20,11 @@
  * time-limited apps (LimitCountdown.kt).
  *
  * WHAT HAPPENS ON A BLOCK
- *   * Blocked app:          show the block screen on top of it (Exit = home).
+ *   * Blocked app:          show the block screen on top of it (Exit = home),
+ *                           then CLOSE the app completely (its process is
+ *                           stopped), so the next open starts fresh instead
+ *                           of resuming where you were. Reopening it again
+ *                           and again can't be used to get further in.
  *   * Blocked web content:  press Back (leaves the page), then show the
  *                           block screen with a purity verse.
  *   * Protected screen:     press Back, then show the block screen.
@@ -32,6 +36,7 @@ package com.alphablocker.service
 
 import com.alphablocker.core.t
 import android.accessibilityservice.AccessibilityService
+import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -385,14 +390,20 @@ class BlockerService : AccessibilityService() {
     private fun block(pkg: String, reason: String, theme: VerseTheme, canExtend: Boolean, pressBack: Boolean) {
         val nowMs = SystemClock.elapsedRealtime()
         if (nowMs - lastBlockAt < 1_500L) {
-            // Too soon after the last block (e.g. the app was reopened instantly).
-            // Forget the current app so the next event or poll checks it again,
-            // instead of letting it through.
+            // Too soon after the last block (e.g. the app was reopened instantly):
+            // don't show a second block screen, but never leave the app usable
+            // either. Go home right away, close it, and forget the current app
+            // so the next event or poll checks it again.
             currentPkg = null
+            if (pressBack) performGlobalAction(GLOBAL_ACTION_BACK) else performGlobalAction(GLOBAL_ACTION_HOME)
+            if (!pressBack) closeApp(pkg)
             return
         }
         lastBlockAt = nowMs
         if (pressBack) performGlobalAction(GLOBAL_ACTION_BACK)
+        // A blocked APP (not a blocked web page, where Back is enough) is closed
+        // completely once it's behind the block screen.
+        if (!pressBack) closeApp(pkg)
         handler.postDelayed({
             runCatching { BlockActivity.launch(this, reason, theme, pkg, canExtend) }
             handler.postDelayed({
@@ -401,6 +412,23 @@ class BlockerService : AccessibilityService() {
                 }
             }, 1_000L)
         }, if (pressBack) 150L else 0L)
+    }
+
+    /**
+     * Stops [pkg]'s process so its next start is a fresh one (back at its start
+     * screen, nothing half-scrolled or half-typed). Uses Android's
+     * killBackgroundProcesses, which only works once the app is no longer in
+     * front, so it runs twice: after the block screen covers it (0.8 s) and
+     * again a little later (2.5 s, before the block screen's 3-second countdown can reopen it with an extension). Your data in that app (logins, settings) is
+     * NOT touched. Never applied to Alpha Blocker itself or to apps the phone
+     * needs (home screen, dialer, Settings, system UI).
+     */
+    private fun closeApp(pkg: String) {
+        if (pkg == packageName || pkg in AppCatalog.criticalPackages(this)) return
+        val am = getSystemService(ActivityManager::class.java) ?: return
+        val kill = Runnable { runCatching { am.killBackgroundProcesses(pkg) } }
+        handler.postDelayed(kill, 800L)
+        handler.postDelayed(kill, 2_500L)
     }
 
     private fun matcherFor(s: AppState): ContentMatcher {

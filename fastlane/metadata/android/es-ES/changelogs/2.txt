@@ -1,0 +1,1 @@
+Las apps bloqueadas ahora se cierran por completo y vuelven a abrir desde cero; reabrir rápido una app bloqueada ya no se salta el bloqueo.

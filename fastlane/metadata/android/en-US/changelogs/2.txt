@@ -1,0 +1,1 @@
+Blocked apps are now closed completely, so they reopen fresh; reopening a blocked app quickly no longer slips past the block.
