@@ -1,0 +1,1 @@
+1.17: blocked apps are force-stopped so they reopen fresh (taps Force stop › OK automatically), optional Ko-fi tip link on the Status tab. The app stays free.

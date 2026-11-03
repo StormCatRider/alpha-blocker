@@ -1,0 +1,1 @@
+1.17: las apps bloqueadas se fuerzan a detener y vuelven a abrir desde cero (toca Forzar detención › Aceptar automáticamente), enlace opcional de propinas en Ko-fi en la pestaña Estado. La app sigue siendo gratis.

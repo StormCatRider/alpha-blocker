@@ -5,6 +5,8 @@
  *
  * Pending loosening changes are listed with a countdown and a Cancel button.
  * Cancelling is always instant (it keeps protection stronger).
+ * At the bottom: an optional tip link (opens in the browser; the app stays
+ * offline and free).
  * If the banking pause is on, each bank app gets an "Open" button here
  * (see enforcement/BankPause.kt).
  * =============================================================================
@@ -12,6 +14,7 @@
 package com.alphablocker.ui
 
 import android.content.Intent
+import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
@@ -209,11 +212,31 @@ fun StatusScreen(state: AppState) {
                 HorizontalDivider()
             }
         }
+
+        // Optional tip link. Opens in your browser; Alpha Blocker itself still has
+        // no internet permission and sends nothing. The app is free either way.
+        Section(t("Support Alpha Blocker", "Apoya Alpha Blocker")) {
+            Text(t(
+                "Alpha Blocker is free and always will be. If it helps you and you'd like to support its development, you can leave a tip.",
+                "Alpha Blocker es gratis y siempre lo será. Si te ayuda y quieres apoyar su desarrollo, puedes dejar una propina.",
+            ))
+            OutlinedButton(onClick = {
+                runCatching {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(DONATE_URL)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                }.onFailure {
+                    Toast.makeText(context, t("No browser found to open the link.", "No se encontró un navegador para abrir el enlace."), Toast.LENGTH_LONG).show()
+                }
+            }) { Text(t("Donate on Ko-fi", "Donar en Ko-fi")) }
+            Text(DONATE_URL, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+        }
     }
 
     if (starting) StartProtectionDialog(onDismiss = { starting = false })
     if (showRestrictedHelp) RestrictedSettingsHelp(onDismiss = { showRestrictedHelp = false })
 }
+
+/** The developer's tip page (Status tab › Support Alpha Blocker). */
+private const val DONATE_URL = "https://ko-fi.com/catstormrider"
 
 @Composable
 private fun Check(label: String, ok: Boolean) {
