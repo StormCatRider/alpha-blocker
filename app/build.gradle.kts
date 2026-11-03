@@ -27,8 +27,8 @@ android {
         applicationId = "com.alphablocker"
         minSdk = 29
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.16.2"
+        versionCode = 4
+        versionName = "1.16.3"
     }
 
     buildTypes {

@@ -11,6 +11,10 @@
   canRetrieveWindowContent + flagReportViewIds: needed to read a browser's
   address bar by its view ID (see core/Browsers.kt).
 
+  canPerformGestures: lets the blocker TAP "Force stop" and "OK" on a blocked
+  app's App info page, like a finger would (service/ForceStopper.kt). Used for
+  nothing else.
+
   Privacy: this data is processed in memory only and never written to disk
   (see service/BlockerService.kt). The app has no internet permission.
 -->
@@ -18,6 +22,7 @@
     android:accessibilityEventTypes="typeWindowStateChanged|typeWindowsChanged|typeWindowContentChanged|typeViewTextChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagReportViewIds|flagRetrieveInteractiveWindows"
+    android:canPerformGestures="true"
     android:canRetrieveWindowContent="true"
     android:description="@string/accessibility_description"
     android:notificationTimeout="200" />

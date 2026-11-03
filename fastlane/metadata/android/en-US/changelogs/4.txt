@@ -1,0 +1,1 @@
+Force stop now taps the buttons on screen (like a finger), which works on the Android 14+ App info page; shows a short message if it can't.

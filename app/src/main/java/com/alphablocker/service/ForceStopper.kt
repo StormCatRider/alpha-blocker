@@ -15,14 +15,17 @@
  * OK. The blocker service (an accessibility service, allowed to press buttons)
  * does exactly that in about a second:
  *   1. opens the blocked app's App info page,
- *   2. presses "Force stop" (found by its text, English or Spanish, or by its
- *      button ID),
- *   3. presses "OK" in the confirmation (Android's standard dialog button,
- *      the same in every language),
+ *   2. finds "Force stop" (by its text or description, English or Spanish, or
+ *      by its button ID) and TAPS its position on screen, like a finger,
+ *   3. finds "OK" in the confirmation and taps it the same way,
  *   4. then the block screen appears.
- * If anything doesn't show up within 4 seconds (another phone layout), it gives
- * up quietly and the block screen appears anyway. If "Force stop" is greyed
- * out, the app is already stopped, so there's nothing to do.
+ * WHY TAPS: since Android 14, App info is drawn with Jetpack Compose, which can
+ * ignore the "click this element" command even though the button is there.
+ * A tap on the screen position always works (needs canPerformGestures in
+ * res/xml/accessibility_service.xml). The click command is only a fallback.
+ * If anything doesn't show up within 5 seconds (another phone layout), it shows
+ * a short message, and the block screen appears anyway. If "Force stop" is
+ * greyed out, the app is already stopped, so there's nothing to do.
  *
  * Your data in that app (logins, settings, downloads) is NOT touched: Force
  * stop only ends the running app. Never used on Alpha Blocker itself or on apps
@@ -32,11 +35,17 @@
 package com.alphablocker.service
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.GestureDescription
 import android.content.Intent
+import android.graphics.Path
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Handler
+import android.os.SystemClock
 import android.provider.Settings
 import android.view.accessibility.AccessibilityNodeInfo
+import android.widget.Toast
+import com.alphablocker.core.t
 
 class ForceStopper(private val service: AccessibilityService, private val handler: Handler) {
 
@@ -46,6 +55,8 @@ class ForceStopper(private val service: AccessibilityService, private val handle
 
     private var stage = 0          // 1 = looking for "Force stop", 2 = looking for "OK"
     private var after: (() -> Unit)? = null
+    private var lastTapAt = 0L     // waits a moment after each tap for the screen to react
+    private var stopped = false    // true once OK was tapped (or the app was already stopped)
 
     private val poll = object : Runnable {
         override fun run() {
@@ -53,7 +64,16 @@ class ForceStopper(private val service: AccessibilityService, private val handle
             if (target != null) handler.postDelayed(this, POLL_MS)
         }
     }
-    private val timeout = Runnable { finish() }
+    private val timeout = Runnable {
+        if (!stopped) {
+            Toast.makeText(
+                service,
+                t("Alpha Blocker couldn't press Force stop on this phone.", "Alpha Blocker no pudo pulsar Forzar detención en este teléfono."),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+        finish()
+    }
 
     /**
      * Force-stops [pkg], then runs [then] (normally: show the block screen).
@@ -63,6 +83,8 @@ class ForceStopper(private val service: AccessibilityService, private val handle
         if (target != null) { then(); return }
         target = pkg
         stage = 1
+        stopped = false
+        lastTapAt = 0L
         after = then
         val opened = runCatching {
             service.startActivity(
@@ -82,40 +104,82 @@ class ForceStopper(private val service: AccessibilityService, private val handle
     fun onEvent() { if (target != null) step() }
 
     private fun step() {
-        val root = service.rootInActiveWindow ?: return
-        if (root.packageName?.toString() != SETTINGS_PKG) return
+        if (SystemClock.elapsedRealtime() - lastTapAt < AFTER_TAP_MS) return
+        val roots = settingsRoots()
+        if (roots.isEmpty()) return
         when (stage) {
             1 -> {
-                val button = findForceStop(root) ?: return
-                if (!button.isEnabled) { finish(); return } // already stopped
-                if (click(button)) stage = 2
+                val button = roots.firstNotNullOfOrNull { findByLabel(it, FORCE_STOP_LABELS) }
+                    ?: roots.firstNotNullOfOrNull { it.findAccessibilityNodeInfosByViewId("$SETTINGS_PKG:id/button3").firstOrNull() }
+                    ?: return
+                val btn = clickableOf(button)
+                if (!btn.isEnabled) { stopped = true; finish(); return } // already stopped
+                if (press(btn)) { stage = 2; lastTapAt = SystemClock.elapsedRealtime() }
             }
             2 -> {
-                // The confirmation's OK is Android's standard positive button.
-                val ok = root.findAccessibilityNodeInfosByViewId("android:id/button1").firstOrNull() ?: return
-                if (click(ok)) finish()
+                // The confirmation dialog: "OK"/"Aceptar", or Android's standard positive button.
+                val ok = roots.firstNotNullOfOrNull { findByLabel(it, OK_LABELS) }
+                    ?: roots.firstNotNullOfOrNull { it.findAccessibilityNodeInfosByViewId("android:id/button1").firstOrNull() }
+                    ?: return
+                if (press(clickableOf(ok))) {
+                    stopped = true
+                    lastTapAt = SystemClock.elapsedRealtime()
+                    handler.postDelayed({ finish() }, AFTER_TAP_MS) // let the stop finish
+                    stage = 3
+                }
             }
         }
     }
 
-    private fun findForceStop(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
-        for (label in FORCE_STOP_LABELS) {
-            root.findAccessibilityNodeInfosByText(label)
-                .firstOrNull { it.text?.toString()?.trim()?.equals(label, ignoreCase = true) == true }
-                ?.let { return it }
-        }
-        // Fallback: Settings' action-button row (Open / Uninstall / Force stop) on Pixel.
-        return root.findAccessibilityNodeInfosByViewId("$SETTINGS_PKG:id/button3").firstOrNull()
+    /** Every on-screen window that belongs to Settings (the page and its dialog). */
+    private fun settingsRoots(): List<AccessibilityNodeInfo> {
+        val fromWindows = runCatching { service.windows.mapNotNull { it.root } }.getOrDefault(emptyList())
+        val all = (listOfNotNull(service.rootInActiveWindow) + fromWindows)
+        return all.filter { it.packageName?.toString() == SETTINGS_PKG }
     }
 
-    /** Clicks [node] or its nearest clickable parent. */
-    private fun click(node: AccessibilityNodeInfo): Boolean {
+    /**
+     * Walks the screen (up to 800 elements) for one whose text or description
+     * is exactly one of [labels] (ignoring case). Works for Compose screens too.
+     */
+    private fun findByLabel(root: AccessibilityNodeInfo, labels: List<String>): AccessibilityNodeInfo? {
+        val queue = ArrayDeque<AccessibilityNodeInfo>()
+        queue.add(root)
+        var visited = 0
+        while (queue.isNotEmpty() && visited < 800) {
+            val n = queue.removeFirst()
+            visited++
+            val text = n.text?.toString()?.trim()
+            val desc = n.contentDescription?.toString()?.trim()
+            if (labels.any { it.equals(text, ignoreCase = true) || it.equals(desc, ignoreCase = true) }) return n
+            for (i in 0 until n.childCount) n.getChild(i)?.let { queue.add(it) }
+        }
+        return null
+    }
+
+    /** The element itself if clickable, else its nearest clickable parent (else itself). */
+    private fun clickableOf(node: AccessibilityNodeInfo): AccessibilityNodeInfo {
         var n: AccessibilityNodeInfo? = node
         while (n != null && !n.isClickable) n = n.parent
-        return n?.isEnabled == true && n.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+        return n ?: node
+    }
+
+    /** Taps the centre of [node] on screen; falls back to the click command. */
+    private fun press(node: AccessibilityNodeInfo): Boolean {
+        val r = Rect()
+        node.getBoundsInScreen(r)
+        if (!r.isEmpty) {
+            val path = Path().apply { moveTo(r.exactCenterX(), r.exactCenterY()) }
+            val tap = GestureDescription.Builder()
+                .addStroke(GestureDescription.StrokeDescription(path, 0L, 60L))
+                .build()
+            if (service.dispatchGesture(tap, null, null)) return true
+        }
+        return node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
     }
 
     private fun finish() {
+        if (target == null) return
         handler.removeCallbacks(poll)
         handler.removeCallbacks(timeout)
         val then = after
@@ -127,12 +191,16 @@ class ForceStopper(private val service: AccessibilityService, private val handle
 
     companion object {
         private const val SETTINGS_PKG = "com.android.settings"
-        private const val POLL_MS = 120L
-        private const val TIMEOUT_MS = 4_000L
+        private const val POLL_MS = 150L
+        private const val AFTER_TAP_MS = 450L
+        private const val TIMEOUT_MS = 5_000L
 
         /** "Force stop" as Pixel Settings writes it (English, Spanish variants). */
         private val FORCE_STOP_LABELS = listOf(
-            "Force stop", "Forzar detención", "Forzar la detención", "Forzar cierre", "Forzar detencion",
+            "Force stop", "Forzar detención", "Forzar la detención", "Forzar cierre", "Forzar detencion", "Forzar parada",
         )
+
+        /** The confirmation's OK button. */
+        private val OK_LABELS = listOf("OK", "Aceptar", "Ok")
     }
 }

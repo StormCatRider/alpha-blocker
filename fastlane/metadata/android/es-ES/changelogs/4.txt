@@ -1,0 +1,1 @@
+Forzar detención ahora toca los botones en pantalla (como un dedo), lo que funciona en la página de información de apps de Android 14+; muestra un aviso si no puede.
