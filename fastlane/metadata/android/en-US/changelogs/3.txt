@@ -1,0 +1,1 @@
+Blocked apps are now force-stopped (App info › Force stop, done automatically in about a second), so they really reopen fresh. Replaces the 1.16.1 method, which Android 14+ ignores. The "close other apps" permission is no longer used.

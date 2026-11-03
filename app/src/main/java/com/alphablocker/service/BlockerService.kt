@@ -20,11 +20,12 @@
  * time-limited apps (LimitCountdown.kt).
  *
  * WHAT HAPPENS ON A BLOCK
- *   * Blocked app:          show the block screen on top of it (Exit = home),
- *                           then CLOSE the app completely (its process is
- *                           stopped), so the next open starts fresh instead
- *                           of resuming where you were. Reopening it again
- *                           and again can't be used to get further in.
+ *   * Blocked app:          FORCE-STOP it (ForceStopper.kt: App info ›
+ *                           Force stop › OK, about a second), then show the
+ *                           block screen (Exit = home). The app's process
+ *                           ends and it leaves Recents, so the next open
+ *                           starts fresh; reopening it again and again can't
+ *                           be used to get further in.
  *   * Blocked web content:  press Back (leaves the page), then show the
  *                           block screen with a purity verse.
  *   * Protected screen:     press Back, then show the block screen.
@@ -36,7 +37,6 @@ package com.alphablocker.service
 
 import com.alphablocker.core.t
 import android.accessibilityservice.AccessibilityService
-import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -69,6 +69,9 @@ import java.time.LocalDateTime
 class BlockerService : AccessibilityService() {
 
     private val handler = Handler(Looper.getMainLooper())
+
+    /** Force-stops blocked apps so they reopen fresh (ForceStopper.kt). */
+    private val forceStopper by lazy { ForceStopper(this, handler) }
     private lateinit var power: PowerManager
 
     /** App currently in front (null until the first window event). */
@@ -183,6 +186,9 @@ class BlockerService : AccessibilityService() {
     // ------------------------------------------------------------------ events
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        // While a blocked app is being force-stopped, only drive that (Settings'
+        // App info page is on screen for about a second; nothing else to check).
+        if (forceStopper.target != null) { forceStopper.onEvent(); return }
         val type = event.eventType
         val pkg = event.packageName?.toString()
 
@@ -260,6 +266,7 @@ class BlockerService : AccessibilityService() {
      * browsers and in apps that have protected screens.
      */
     private fun recheckCurrentScreen() {
+        if (forceStopper.target != null) return // busy force-stopping a blocked app
         val pkg = currentPkg ?: return
         if (pkg == packageName) return
         val s = Graph.store.current
@@ -388,48 +395,40 @@ class BlockerService : AccessibilityService() {
      * back to pressing Home so the blocked content is never left on screen.
      */
     private fun block(pkg: String, reason: String, theme: VerseTheme, canExtend: Boolean, pressBack: Boolean) {
+        // A blocked APP (not a blocked web page, where Back is enough) is also
+        // force-stopped, so it reopens fresh and vanishes from Recents.
+        val stopApp = !pressBack && canForceStop(pkg)
         val nowMs = SystemClock.elapsedRealtime()
         if (nowMs - lastBlockAt < 1_500L) {
             // Too soon after the last block (e.g. the app was reopened instantly):
             // don't show a second block screen, but never leave the app usable
-            // either. Go home right away, close it, and forget the current app
-            // so the next event or poll checks it again.
+            // either. Leave it now, force-stop it, and forget the current app so
+            // the next event or poll checks it again.
             currentPkg = null
-            if (pressBack) performGlobalAction(GLOBAL_ACTION_BACK) else performGlobalAction(GLOBAL_ACTION_HOME)
-            if (!pressBack) closeApp(pkg)
+            if (stopApp) forceStopper.stop(pkg) { performGlobalAction(GLOBAL_ACTION_HOME) }
+            else performGlobalAction(if (pressBack) GLOBAL_ACTION_BACK else GLOBAL_ACTION_HOME)
             return
         }
         lastBlockAt = nowMs
         if (pressBack) performGlobalAction(GLOBAL_ACTION_BACK)
-        // A blocked APP (not a blocked web page, where Back is enough) is closed
-        // completely once it's behind the block screen.
-        if (!pressBack) closeApp(pkg)
-        handler.postDelayed({
+        val showBlockScreen = {
             runCatching { BlockActivity.launch(this, reason, theme, pkg, canExtend) }
             handler.postDelayed({
                 if (rootInActiveWindow?.packageName?.toString() != packageName) {
                     performGlobalAction(GLOBAL_ACTION_HOME)
                 }
             }, 1_000L)
-        }, if (pressBack) 150L else 0L)
+        }
+        when {
+            stopApp -> forceStopper.stop(pkg) { showBlockScreen() } // block screen right after the stop
+            pressBack -> handler.postDelayed({ showBlockScreen() }, 150L)
+            else -> showBlockScreen()
+        }
     }
 
-    /**
-     * Stops [pkg]'s process so its next start is a fresh one (back at its start
-     * screen, nothing half-scrolled or half-typed). Uses Android's
-     * killBackgroundProcesses, which only works once the app is no longer in
-     * front, so it runs twice: after the block screen covers it (0.8 s) and
-     * again a little later (2.5 s, before the block screen's 3-second countdown can reopen it with an extension). Your data in that app (logins, settings) is
-     * NOT touched. Never applied to Alpha Blocker itself or to apps the phone
-     * needs (home screen, dialer, Settings, system UI).
-     */
-    private fun closeApp(pkg: String) {
-        if (pkg == packageName || pkg in AppCatalog.criticalPackages(this)) return
-        val am = getSystemService(ActivityManager::class.java) ?: return
-        val kill = Runnable { runCatching { am.killBackgroundProcesses(pkg) } }
-        handler.postDelayed(kill, 800L)
-        handler.postDelayed(kill, 2_500L)
-    }
+    /** Never force-stop Alpha Blocker itself or apps the phone needs (see ForceStopper.kt). */
+    private fun canForceStop(pkg: String): Boolean =
+        pkg != packageName && pkg !in AppCatalog.criticalPackages(this)
 
     private fun matcherFor(s: AppState): ContentMatcher {
         val key = s.keywords to s.domains

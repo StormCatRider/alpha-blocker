@@ -56,7 +56,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alphablocker.Graph
-import com.alphablocker.core.AppCatalog
 import com.alphablocker.core.Verses
 import com.alphablocker.core.t
 import com.alphablocker.data.VerseTheme
@@ -164,13 +163,6 @@ class BlockActivity : ComponentActivity() {
 
     private fun goHome() {
         startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        // Close the blocked app once more now that it's fully in the background,
-        // so opening it again starts fresh (see BlockerService.closeApp).
-        val pkg = intent.getStringExtra(EXTRA_PKG)
-        if (pkg != null && pkg != packageName && pkg !in AppCatalog.criticalPackages(this)) {
-            val am = getSystemService(android.app.ActivityManager::class.java)
-            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ runCatching { am?.killBackgroundProcesses(pkg) } }, 500L)
-        }
         finish()
     }
 

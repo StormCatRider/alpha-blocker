@@ -26,7 +26,7 @@ After building, check the final merged permissions (libraries can add permission
 ```
 <android-sdk>/build-tools/<version>/aapt dump permissions app-release.apk
 ```
-You should see only `RECEIVE_BOOT_COMPLETED`, `POST_NOTIFICATIONS`, `KILL_BACKGROUND_PROCESSES` (closes a blocked app so it reopens fresh), the optional `WRITE_SECURE_SETTINGS` (only works if you grant it by ADB, see below; used for auto re-enable and the banking pause) and Android's internal `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. **No `INTERNET`.**
+You should see only `RECEIVE_BOOT_COMPLETED`, `POST_NOTIFICATIONS`,  the optional `WRITE_SECURE_SETTINGS` (only works if you grant it by ADB, see below; used for auto re-enable and the banking pause) and Android's internal `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. **No `INTERNET`.**
 
 ---
 
@@ -129,7 +129,7 @@ The protected-screens list matches Pixel settings in both English and Spanish (p
 
 **Recovery code:** single-use. Immediately turns protection off, ends the lock, clears pending changes. A new code is created when you start protection again. Wrong attempts are throttled. Forgot your PIN? The PIN screen has **Forgot PIN? Use recovery code** (while protection is on); after the code you choose a new PIN.
 
-**Blocked apps reopen fresh:** when an app is blocked, Alpha Blocker also closes it completely, so opening it again starts at its first screen instead of where you left off; closing and reopening it quickly can't be used to get further in. Its data (logins, settings) isn't touched.
+**Blocked apps reopen fresh:** when an app is blocked, Alpha Blocker force-stops it first: you'll see its App info page for about a second while the blocker presses **Force stop › OK** for you, then the block screen. The app's process ends and it disappears from Recents (no preview), so opening it again starts at its first screen; closing and reopening it quickly can't be used to get further in. Its data (logins, settings) isn't touched. (Android 14+ no longer lets apps stop other apps directly, so this is the reliable way.)
 
 **Daily limits:** when used up, you get a limited number of short extensions per day (shared across apps), then a hard block until midnight. While a time-limited app is open, an optional quiet notification counts down the time left today (**Apps › Time-left notification**, on by default).
 

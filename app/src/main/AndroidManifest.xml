@@ -14,7 +14,6 @@
   Permissions that ARE requested, and why:
     * RECEIVE_BOOT_COMPLETED  re-apply protection after a restart.
     * POST_NOTIFICATIONS      warn you if the blocker service gets switched off.
-    * KILL_BACKGROUND_PROCESSES  close a blocked app so it reopens fresh.
     * WRITE_SECURE_SETTINGS   optional, only via ADB: re-enables the blocker
                               service if it is switched off, and runs the
                               opt-in banking pause (see below).
@@ -30,13 +29,7 @@
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!--
-      Closes a BLOCKED app completely after the block screen covers it, so the
-      next open starts fresh (service/BlockerService.kt, closeApp). A normal
-      permission (granted automatically); it can only stop apps that are in the
-      background and never touches their data.
-    -->
-    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
+
     <!--
       OPTIONAL. Only takes effect if YOU grant it from a computer:
         adb shell pm grant com.alphablocker android.permission.WRITE_SECURE_SETTINGS

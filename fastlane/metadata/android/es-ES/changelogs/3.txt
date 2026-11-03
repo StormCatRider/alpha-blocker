@@ -1,0 +1,1 @@
+Las apps bloqueadas ahora se fuerzan a detener (Información de la app › Forzar detención, automático en un segundo), así que de verdad vuelven a abrir desde cero. Sustituye el método de 1.16.1, que Android 14+ ignora. Ya no se usa el permiso de "cerrar otras apps".
