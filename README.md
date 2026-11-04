@@ -1,6 +1,6 @@
 # Alpha Blocker
 
-A private, offline self-control blocker for Android, built for a Google Pixel on Android 16.
+A private, offline self-control blocker for Android.
 
 **Website:** [alphablocker.app](https://alphablocker.app) · **Download:** [latest release](https://github.com/StormCatRider/alpha-blocker/releases/latest)
 
@@ -165,7 +165,7 @@ Every file starts with a header explaining what it does and why. Start here:
 | `app/build.gradle.kts` | Dependencies: AndroidX + Compose + coroutines only. No network/analytics libraries. |
 | `data/Models.kt`, `data/Store.kt` | Exactly what is saved, where, and that backup is off. |
 | `security/Crypto.kt` | PIN/recovery hashing (PBKDF2-SHA256, salted, constant-time compare). |
-| `security/DevUnlock.kt`, `tools/dev_unlock.py` | Developer unlock codes: per-phone, single-use, ECDSA P-256 signatures; no master codes. |
+| `security/DevUnlock.kt` | Developer unlock codes: per-phone, single-use, ECDSA P-256 signatures checked with a public key; no master codes. |
 | `core/Changes.kt` | The tightening/loosening rule, lock, recovery code, attempt throttling. |
 | `core/TrustedClock.kt` | Why changing the date doesn't skip delays. |
 | `service/BlockerService.kt` | What screen content is read, and that it's never stored. |
@@ -185,7 +185,6 @@ Every file starts with a header explaining what it does and why. Start here:
 
 ### Project layout
 ```
-tools/dev_unlock.py              developer unlock codes (run on your computer)
 app/src/main/java/com/alphablocker/
   AlphaApp.kt, Graph.kt          startup + shared objects
   data/        Models, Store, StateJson
@@ -218,24 +217,11 @@ Alpha Blocker is free software: you can redistribute it and/or modify it under t
 
 The bundled Bible verses are from the Douay-Rheims (Challoner) translation, which is in the public domain. The app icon is original artwork under the same license as the code.
 
-## Developer unlock codes (for people who lost their recovery code)
+## Lost your recovery code?
 
-Optional, for whoever publishes a build. If a user loses or miswrote their paper recovery code, the recovery dialog offers **Lost or miswrote the code? Ask the developer**. It shows a 16-character **request code** unique to that phone; the developer turns it into an **unlock code** that works only on that phone, only once, and does what the recovery code does.
+If you lost or miswrote your paper recovery code, you can request a developer unlock code. In the recovery dialog (Protect tab, or **Forgot PIN?** on the PIN screen), tap **Lost or miswrote the code? Ask the developer**. The app shows a 16-character **request code**; post it in [Q&A Discussions](https://github.com/StormCatRider/alpha-blocker/discussions/categories/q-a) and ask for an unlock code.
 
-There are no fixed master codes: the app is open source, so a fixed code would unlock every copy as soon as it leaked. Instead the app holds only a **public key** (`security/DevKey.kt`), which can check codes but not make them.
-
-Set up once, on your own computer (needs Python 3):
-```
-pip install cryptography
-python tools/dev_unlock.py keygen
-```
-This writes `alphablocker_dev_private.pem` (**secret**: back it up offline, never share or commit it; `.gitignore` excludes it) and prints the `PUBLIC_KEY` line to paste into `security/DevKey.kt`. Rebuild. With `PUBLIC_KEY` empty, the option is hidden.
-
-When someone sends a request code:
-```
-python tools/dev_unlock.py sign ABCD-EFGH-IJKL-MNOP
-```
-(add `--app <your applicationId>` if you changed it). Send back the printed unlock code. Before you do, make sure the request really comes from the phone's owner, and consider asking them to wait a day: the code removes their protection. Losing the private key only means you can't make new codes; anyone who gets it can unlock any phone running your build, so then publish a build with a new key.
+The request code is safe to share: it unlocks nothing by itself. The unlock code you get back works only on your phone, only once, and turns protection off like the recovery code. Expect a few questions first, and possibly a wait, since it removes your protection. There are no master codes that work on every phone.
 
 ## App ID and F-Droid
 

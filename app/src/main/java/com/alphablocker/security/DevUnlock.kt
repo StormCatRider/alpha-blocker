@@ -7,9 +7,9 @@
  *   1. The phone shows a REQUEST code: 16 random characters made on that phone
  *      (kept until used, so a request sent by email stays valid).
  *   2. The person sends it to the developer.
- *   3. The developer runs tools/dev_unlock.py with their PRIVATE key. It signs
- *      "alphablocker-dev-unlock-v1:<app ID>:<request>" and prints the UNLOCK
- *      code (the signature, written in letters and digits).
+ *   3. The developer signs, with their PRIVATE key (offline, never in the app),
+ *      "alphablocker-dev-unlock-v1:<app ID>:<request>"; that signature is the UNLOCK
+ *      code (written in letters and digits).
  *   4. The phone checks the signature with the PUBLIC key in DevKey.kt.
  *      Correct = same as the recovery code: protection off, lock ended,
  *      pending changes cleared. Then a new request code is made, so each
@@ -60,7 +60,7 @@ object DevUnlock {
     /** Removes spaces/dashes and upper-cases, so pasted codes work. */
     fun normalize(input: String): String = input.uppercase().filter { it in ALPHABET }
 
-    /** Text the developer signs. Must match tools/dev_unlock.py exactly. */
+    /** Text the developer signs. Must match the developer's signing tool exactly. */
     fun message(appId: String, request: String): ByteArray =
         "$CONTEXT:$appId:${normalize(request)}".toByteArray(Charsets.UTF_8)
 
