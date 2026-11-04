@@ -7,7 +7,8 @@ A private, offline self-control blocker for Android.
 - **No internet permission.** The app cannot send anything anywhere; Android enforces this.
 - **Stronger is instant, weaker waits.** Tightening applies now. Loosening waits for your delay and is frozen during a fixed lock period.
 - **Hard to remove.** Device Owner mode blocks uninstall, factory reset, safe mode, new users, Private Space and Private DNS changes.
-- **Catholic encouragement.** The block screen shows a Douay-Rheims verse: purity verses for adult content, diligence verses for time-wasting apps.
+- **Catholic encouragement.** The block screen shows a Bible verse: purity verses for adult content, diligence verses for time-wasting apps (Douay-Rheims in English, Torres Amat in Spanish).
+- **English and Spanish / Inglés y español.** The whole app, including the verses, is available in both languages. It follows your phone's language, or pick one in setup or on the Protect tab. *La app completa, incluidos los versículos, está en español.*
 
 ---
 
