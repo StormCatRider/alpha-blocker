@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * =============================================================================
- * ProtectionScreen.kt — language, delay, lock, extensions, installs, DNS filter,
+ * ProtectionScreen.kt — language, color theme, delay, lock, extensions, installs, DNS filter,
  *                       banking pause, PIN, recovery code, and turning
  *                       protection off
  *
@@ -78,9 +78,19 @@ fun ProtectionScreen(state: AppState) {
     var pickingBank by remember { mutableStateOf(false) }
     val isOwner = state.mode == ProtectionMode.DEVICE_OWNER
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp)) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Space.lg, vertical = Space.md)) {
 
         Section(t("Language", "Idioma")) { LanguagePicker() }
+
+        // Display only, so it applies at once (no delay).
+        Section(t("Color theme", "Tema de color")) {
+            Text(
+                t("Changes the colors of the app and the block screen. Light and dark mode follow your phone.", "Cambia los colores de la app y de la pantalla de bloqueo. El modo claro u oscuro sigue a tu teléfono."),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            PalettePicker()
+        }
 
         Section(t("Loosening delay", "Retraso para aflojar")) {
             Text(t(

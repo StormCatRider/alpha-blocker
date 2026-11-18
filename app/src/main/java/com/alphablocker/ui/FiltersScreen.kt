@@ -46,7 +46,7 @@ import java.util.UUID
 @Composable
 fun FiltersScreen(state: AppState) {
     val context = LocalContext.current
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp)) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Space.lg, vertical = Space.md)) {
 
         Section(t("Filter switches", "Interruptores de filtros")) {
             listOf(Feature.KEYWORD_BLOCKER, Feature.SAFE_SEARCH, Feature.BROWSER_ALLOWLIST, Feature.PROTECTED_SCREENS).forEach { f ->

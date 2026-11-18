@@ -57,7 +57,7 @@ fun AppsScreen(state: AppState) {
     var picking by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<AppRule?>(null) }
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp)) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Space.lg, vertical = Space.md)) {
         Section(t("App rules", "Reglas de apps")) {
             Text(t("Block apps always, on a schedule, or after a daily time limit.", "Bloquea apps siempre, con horario o tras un límite diario."))
             Spacer(Modifier.height(8.dp))

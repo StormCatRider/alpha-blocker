@@ -1,0 +1,1 @@
+1.18: diseño renovado (tarjetas más claras, botones de 48 dp, iconos de línea, mejor contraste, barra de progreso en la configuración) y 4 temas de color (Proteger › Tema de color). Las apps bloqueadas por horario o límite diario ya no se fuerzan a detener, así que con una extensión vuelves a donde estabas.

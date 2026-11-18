@@ -48,7 +48,7 @@ fun VersesScreen(state: AppState) {
     var theme by remember { mutableStateOf(VerseTheme.PURITY) }
     var showBuiltIn by remember { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp)) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Space.lg, vertical = Space.md)) {
 
         Section(t("Add your own verse", "Añade tu propio versículo")) {
             OutlinedTextField(reference, { reference = it }, label = { Text(t("Reference, e.g. Psalm 50:12", "Referencia, p. ej. Salmo 50:12")) }, singleLine = true, modifier = Modifier.fillMaxWidth())

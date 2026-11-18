@@ -25,6 +25,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.res.painterResource
@@ -97,53 +101,68 @@ class BlockActivity : ComponentActivity() {
                     }
                 }
 
-                Box(Modifier.fillMaxSize().background(BrandBlue).systemBarsPadding()) {
+                val brand = LocalBrand.current
+                Box(Modifier.fillMaxSize().background(brand.brand).systemBarsPadding()) {
+                    // Content column: max 520 dp wide so the verse stays readable on tablets.
                     Column(
-                        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
+                        Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = Space.xl, vertical = Space.xxl),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Image(painterResource(R.drawable.ic_logo), contentDescription = "Alpha Blocker logo", modifier = Modifier.size(56.dp))
-                        Spacer(Modifier.height(16.dp))
-                        // Orange accent bar
-                        Box(Modifier.width(64.dp).height(6.dp).background(BrandOrange, RoundedCornerShape(3.dp)))
-                        Spacer(Modifier.height(24.dp))
-                        Text(
-                            "“${verse.text}”",
-                            color = Color.White,
-                            fontSize = 22.sp,
-                            lineHeight = 30.sp,
-                            fontStyle = FontStyle.Italic,
-                            textAlign = TextAlign.Center,
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            // Built-in verses show their translation (Douay-Rheims / Torres Amat); your own show just the reference.
-                            Verses.translationOf(verse)?.let { "— ${verse.reference} ($it)" } ?: "— ${verse.reference}",
-                            color = BrandOrange,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                        )
-                        Spacer(Modifier.height(32.dp))
-                        Text(reason, color = Color.White, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-                        Spacer(Modifier.height(32.dp))
-                        // Disabled and showing the countdown until 3 seconds have passed.
-                        AccentButton(
-                            if (seconds > 0) t("Exit in $seconds…", "Salir en $seconds…") else t("Exit", "Salir"),
-                            Modifier.fillMaxWidth(),
-                            enabled = seconds == 0,
-                        ) { goHome() }
+                        Column(
+                            Modifier.widthIn(max = 520.dp).fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Image(painterResource(R.drawable.ic_logo), contentDescription = null, modifier = Modifier.size(56.dp))
+                            Spacer(Modifier.height(Space.lg))
+                            // Accent bar (decorative)
+                            Box(Modifier.width(64.dp).height(6.dp).background(brand.accent, RoundedCornerShape(3.dp)))
+                            Spacer(Modifier.height(Space.xl))
+                            Text(
+                                "“${verse.text}”",
+                                color = brand.onBrand,
+                                style = VerseStyle,
+                                fontStyle = FontStyle.Italic,
+                                textAlign = TextAlign.Center,
+                            )
+                            Spacer(Modifier.height(Space.md))
+                            Text(
+                                // Built-in verses show their translation (Douay-Rheims / Torres Amat); your own show just the reference.
+                                Verses.translationOf(verse)?.let { "— ${verse.reference} ($it)" } ?: "— ${verse.reference}",
+                                color = brand.highlight,
+                                style = MaterialTheme.typography.titleSmall,
+                                textAlign = TextAlign.Center,
+                            )
+                            Spacer(Modifier.height(Space.xxl))
+                            Text(reason, color = brand.onBrandMuted, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
+                            Spacer(Modifier.height(Space.xxl))
+                            // Disabled and showing the countdown until 3 seconds have passed.
+                            AccentButton(
+                                if (seconds > 0) t("Exit in $seconds…", "Salir en $seconds…") else t("Exit", "Salir"),
+                                Modifier.fillMaxWidth(),
+                                enabled = seconds == 0,
+                            ) { goHome() }
 
-                        if (seconds == 0 && canExtend && pkg != null && extensionsLeft > 0) {
-                            Spacer(Modifier.height(12.dp))
-                            OutlinedButton(onClick = { extend(pkg) }, modifier = Modifier.fillMaxWidth()) {
-                                Text(
-                                    t(
-                                        "Use an extension: ${state.extensionMinutes} min ($extensionsLeft left today)",
-                                        "Usar una extensión: ${state.extensionMinutes} min (quedan $extensionsLeft hoy)",
-                                    ),
-                                    color = Color.White,
-                                )
+                            if (seconds == 0 && canExtend && pkg != null && extensionsLeft > 0) {
+                                Spacer(Modifier.height(Space.md))
+                                OutlinedButton(
+                                    onClick = { extend(pkg) },
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                                    shape = MaterialTheme.shapes.medium,
+                                    border = BorderStroke(1.5.dp, brand.onBrandMuted),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = brand.onBrand),
+                                ) {
+                                    Text(
+                                        t(
+                                            "Use an extension: ${state.extensionMinutes} min ($extensionsLeft left today)",
+                                            "Usar una extensión: ${state.extensionMinutes} min (quedan $extensionsLeft hoy)",
+                                        ),
+                                        textAlign = TextAlign.Center,
+                                    )
+                                }
                             }
                         }
                     }

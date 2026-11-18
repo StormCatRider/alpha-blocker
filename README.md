@@ -116,6 +116,9 @@ Then **Status › Start protection**. You'll get a **recovery code** shown once.
 
 ---
 
+### Color theme
+Four color themes: **Alpha** (blue and orange, default), **Sanctuary** (purple and gold), **Forest** (green and amber) and **Ocean** (teal and coral). Pick one in setup or on **Protect › Color theme**; it applies at once. Light and dark mode follow the phone, and every theme is checked for readable contrast.
+
 ### Language
 The app is in English and Spanish. It follows the phone's language, or choose it on the first setup screen or **Protect › Language**. On Android 13+ you can also set it in **Settings › Apps › Alpha Blocker › Language**. The block-screen verses follow the language: Douay-Rheims in English, Torres Amat (1825) in Spanish (34 verses checked against the English set). Your own verses always show as you typed them.
 
@@ -132,7 +135,9 @@ The protected-screens list matches Pixel settings in both English and Spanish (p
 
 **Recovery code:** single-use. Immediately turns protection off, ends the lock, clears pending changes. A new code is created when you start protection again. Wrong attempts are throttled. Forgot your PIN? The PIN screen has **Forgot PIN? Use recovery code** (while protection is on); after the code you choose a new PIN.
 
-**Blocked apps reopen fresh:** when an app is blocked, Alpha Blocker force-stops it first: you'll see its App info page for about a second while the blocker presses **Force stop › OK** for you, then the block screen. The app's process ends and it disappears from Recents (no preview), so opening it again starts at its first screen; closing and reopening it quickly can't be used to get further in. Its data (logins, settings) isn't touched. (Android 14+ no longer lets apps stop other apps directly, so this is the reliable way.)
+**"Always blocked" apps reopen fresh:** when an app set to *Always blocked* (or a browser not on your allowed list) is opened, Alpha Blocker force-stops it first: you'll see its App info page for about a second while the blocker presses **Force stop › OK** for you, then the block screen. The app's process ends and it disappears from Recents (no preview), so opening it again starts at its first screen; closing and reopening it quickly can't be used to get further in. Its data (logins, settings) isn't touched. (Android 14+ no longer lets apps stop other apps directly, so this is the reliable way.)
+
+**Time-limited apps keep your place:** apps blocked by a **schedule** or a **daily limit** are not force-stopped. They're sent to the background and the block screen appears, so if you use an extension, or once the blocked hours are over, the app is exactly where you left it.
 
 **Daily limits:** when used up, you get a limited number of short extensions per day (shared across apps), then a hard block until midnight. While a time-limited app is open, an optional quiet notification counts down the time left today (**Apps › Time-left notification**, on by default).
 

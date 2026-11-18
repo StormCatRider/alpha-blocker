@@ -43,6 +43,9 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -141,10 +144,24 @@ fun SetupWizard() {
     }
 
     Column(Modifier.fillMaxSize()) {
-        Header(t("Set up Alpha Blocker", "Configurar Alpha Blocker") + " · ${step + 1}/${LAST_STEP + 1}")
+        Header(t("Set up Alpha Blocker", "Configurar Alpha Blocker"))
+        // Progress: "Step 2 of 6" in words (for screen readers too) plus a bar.
+        Column(Modifier.fillMaxWidth().padding(horizontal = Space.lg, vertical = Space.md), verticalArrangement = Arrangement.spacedBy(Space.sm)) {
+            Text(
+                t("Step ${step + 1} of ${LAST_STEP + 1}", "Paso ${step + 1} de ${LAST_STEP + 1}"),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            LinearProgressIndicator(
+                progress = { (step + 1f) / (LAST_STEP + 1f) },
+                modifier = Modifier.fillMaxWidth().height(6.dp),
+                trackColor = MaterialTheme.colorScheme.surfaceContainer,
+                drawStopIndicator = {},
+            )
+        }
         Column(
-            Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = Space.lg, vertical = Space.sm),
+            verticalArrangement = Arrangement.spacedBy(Space.md),
         ) {
             // key(refresh): bumping `refresh` redraws this step, re-checking system status.
             key(refresh) { when (step) {
@@ -159,6 +176,7 @@ fun SetupWizard() {
                         "La idea clave: hacer la protección MÁS FUERTE es inmediato. Hacerla MÁS DÉBIL espera un retraso que tú eliges, así un momento de debilidad pasa antes de que cambie algo.",
                     ))
                     Section(t("Language", "Idioma")) { LanguagePicker() }
+                    Section(t("Color theme", "Tema de color")) { PalettePicker() }
                 }
 
                 1 -> {
@@ -174,8 +192,9 @@ fun SetupWizard() {
                         ))
                         SelectionContainer { Text(Enforcer.deviceOwnerCommand(context), fontFamily = FontFamily.Monospace) }
                         Text(t("4. Add your accounts back, then tap Check.", "4. Vuelve a añadir tus cuentas y toca Comprobar."))
-                        Text(
-                            if (policy.isDeviceOwner()) t("✔ Alpha Blocker is Device Owner.", "✔ Alpha Blocker es Device Owner.")
+                        StatusLine(
+                            if (policy.isDeviceOwner()) CheckState.OK else CheckState.NOT_SET,
+                            if (policy.isDeviceOwner()) t("Alpha Blocker is Device Owner.", "Alpha Blocker es Device Owner.")
                             else t("Not Device Owner yet.", "Todavía no es Device Owner."),
                         )
                         Button(onClick = {
@@ -198,7 +217,7 @@ fun SetupWizard() {
                                     ),
                             )
                         }) { Text(t("Activate Device Admin", "Activar administrador de dispositivo")) }
-                        if (policy.isAdminActive() && !policy.isDeviceOwner()) Text(t("✔ Device Admin active.", "✔ Administrador de dispositivo activo."))
+                        if (policy.isAdminActive() && !policy.isDeviceOwner()) StatusLine(CheckState.OK, t("Device Admin active.", "Administrador de dispositivo activo."))
                     }
                     Text(t("Selected: ", "Elegido: ") + when (mode) {
                         ProtectionMode.DEVICE_OWNER -> "Device Owner"
@@ -262,7 +281,7 @@ fun SetupWizard() {
                     Button(onClick = { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }) {
                         Text(t("Open accessibility settings", "Abrir ajustes de accesibilidad"))
                     }
-                    Text(if (accOn) t("✔ Blocker service is on.", "✔ El servicio de bloqueo está activo.") else t("Blocker service is off.", "El servicio de bloqueo está apagado."))
+                    StatusLine(if (accOn) CheckState.OK else CheckState.PROBLEM, if (accOn) t("Blocker service is on.", "El servicio de bloqueo está activo.") else t("Blocker service is off.", "El servicio de bloqueo está apagado."))
                     if (Build.VERSION.SDK_INT >= 33) {
                         OutlinedButton(onClick = { notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }) {
                             Text(t("Allow warning notifications", "Permitir notificaciones de aviso"))
@@ -279,16 +298,24 @@ fun SetupWizard() {
                     )
                 }
             } }
-            error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            error?.let { StatusLine(CheckState.PROBLEM, it) }
         }
 
+        // Bottom bar: Back (outlined) and Next (filled), 48 dp tall, above the gesture bar.
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Row(
-            Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = Space.lg, vertical = Space.md),
+            horizontalArrangement = Arrangement.spacedBy(Space.sm),
         ) {
-            if (step > 0) OutlinedButton(onClick = { error = null; step-- }) { Text(t("Back", "Atrás")) }
+            if (step > 0) {
+                OutlinedButton(
+                    onClick = { error = null; step-- },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    shape = MaterialTheme.shapes.medium,
+                ) { Text(t("Back", "Atrás")) }
+            }
             Spacer(Modifier.weight(1f))
-            Button(enabled = !saving, onClick = {
+            Button(enabled = !saving, modifier = Modifier.heightIn(min = 48.dp), shape = MaterialTheme.shapes.medium, onClick = {
                 error = validate()
                 if (error == null) {
                     if (step < LAST_STEP) step++ else finish()

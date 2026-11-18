@@ -1,0 +1,1 @@
+1.18: refreshed design (clearer cards, 48 dp buttons, line icons, better contrast, setup progress bar) and 4 color themes (Protect › Color theme). Apps blocked by a schedule or daily limit are no longer force-stopped, so an extension brings you back where you were.

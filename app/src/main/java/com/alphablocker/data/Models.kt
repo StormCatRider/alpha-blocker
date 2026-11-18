@@ -280,6 +280,8 @@ data class AppState(
     val privateDnsHost: String? = null,
 
     // ---- display ----
+    /** Color theme id (ui/Theme.kt Palette): "alpha", "sanctuary", "forest" or "ocean". Instant. */
+    val palette: String = "alpha",
     /** "Time left today" notification for time-limited apps (service/LimitCountdown.kt). Not protection: instant. */
     val showLimitCountdown: Boolean = true,
 

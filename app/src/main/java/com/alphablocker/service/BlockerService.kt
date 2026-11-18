@@ -20,12 +20,17 @@
  * time-limited apps (LimitCountdown.kt).
  *
  * WHAT HAPPENS ON A BLOCK
- *   * Blocked app:          FORCE-STOP it (ForceStopper.kt: App info ›
+ *   * "Always blocked" app, or a browser not on the allowed list:
+ *                           FORCE-STOP it (ForceStopper.kt: App info ›
  *                           Force stop › OK, about a second), then show the
  *                           block screen (Exit = home). The app's process
  *                           ends and it leaves Recents, so the next open
  *                           starts fresh; reopening it again and again can't
  *                           be used to get further in.
+ *   * App blocked by a schedule or its daily limit: go Home and show the
+ *                           block screen, WITHOUT force-stopping, so after an
+ *                           extension (or when the blocked hours end) the
+ *                           app is right where you left it.
  *   * Blocked web content:  press Back (leaves the page), then show the
  *                           block screen with a purity verse.
  *   * Protected screen:     press Back, then show the block screen.
@@ -289,7 +294,7 @@ class BlockerService : AccessibilityService() {
             extensionsUsed = usage.extensionsUsed(),
         )
         if (decision is Decision.Block) {
-            block(pkg, decision.reason, decision.theme, decision.canExtend, pressBack = false)
+            block(pkg, decision.reason, decision.theme, decision.canExtend, pressBack = false, forceStop = decision.forceStop)
             return true
         }
         return false
@@ -394,10 +399,12 @@ class BlockerService : AccessibilityService() {
      * button goes home. If it still didn't appear (checked after 1 s), we fall
      * back to pressing Home so the blocked content is never left on screen.
      */
-    private fun block(pkg: String, reason: String, theme: VerseTheme, canExtend: Boolean, pressBack: Boolean) {
-        // A blocked APP (not a blocked web page, where Back is enough) is also
-        // force-stopped, so it reopens fresh and vanishes from Recents.
-        val stopApp = !pressBack && canForceStop(pkg)
+    private fun block(pkg: String, reason: String, theme: VerseTheme, canExtend: Boolean, pressBack: Boolean, forceStop: Boolean = false) {
+        // "Always blocked" apps and non-allowed browsers are also force-stopped,
+        // so they reopen fresh. Apps blocked by a schedule or daily limit only go
+        // to the background (Home + block screen): after an extension, or when
+        // the blocked hours end, they're right where you left them.
+        val stopApp = forceStop && !pressBack && canForceStop(pkg)
         val nowMs = SystemClock.elapsedRealtime()
         if (nowMs - lastBlockAt < 1_500L) {
             // Too soon after the last block (e.g. the app was reopened instantly):

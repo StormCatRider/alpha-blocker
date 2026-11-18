@@ -41,6 +41,7 @@ object StateJson {
         put("privateDnsHost", s.privateDnsHost ?: JSONObject.NULL)
         put("installWindowUntil", s.installWindowUntil)
         put("showLimitCountdown", s.showLimitCountdown)
+        put("palette", s.palette)
         put("bankPauseEnabled", s.bankPauseEnabled)
         put("bankApps", JSONArray(s.bankApps))
         put("bankPauseMinutes", s.bankPauseMinutes)
@@ -121,6 +122,7 @@ object StateJson {
         privateDnsHost = o.optStringOrNull("privateDnsHost"),
         installWindowUntil = o.optLong("installWindowUntil", 0L),
         showLimitCountdown = o.optBoolean("showLimitCountdown", true),
+        palette = o.optString("palette", "alpha"),
         bankPauseEnabled = o.optBoolean("bankPauseEnabled", false),
         bankApps = o.optJSONArray("bankApps")?.strings() ?: emptyList(),
         bankPauseMinutes = o.optInt("bankPauseMinutes", 4).coerceIn(2, 4),

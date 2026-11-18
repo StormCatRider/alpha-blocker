@@ -26,8 +26,13 @@ sealed class Decision {
      * @property reason    short text shown on the block screen.
      * @property theme     which kind of verse to show.
      * @property canExtend true if an extension button should be offered.
+     * @property forceStop true = also force-stop the app so it reopens fresh
+     *                     ("always blocked" apps, browsers not allowed).
+     *                     false for schedules and daily limits: the app only
+     *                     goes to the background, so after an extension (or
+     *                     when the time window ends) you're back where you were.
      */
-    data class Block(val reason: String, val theme: VerseTheme, val canExtend: Boolean) : Decision()
+    data class Block(val reason: String, val theme: VerseTheme, val canExtend: Boolean, val forceStop: Boolean) : Decision()
 }
 
 object RuleEngine {
@@ -45,25 +50,25 @@ object RuleEngine {
         if (!s.protectionActive || pkg in critical) return Decision.Allow
 
         if (isBrowser && Feature.BROWSER_ALLOWLIST in s.features && pkg !in s.allowedBrowsers) {
-            return Decision.Block(t("This browser isn't on your allowed list.", "Este navegador no está en tu lista de permitidos."), VerseTheme.PURITY, false)
+            return Decision.Block(t("This browser isn't on your allowed list.", "Este navegador no está en tu lista de permitidos."), VerseTheme.PURITY, false, forceStop = true)
         }
 
         val rule = s.appRules.firstOrNull { it.pkg == pkg } ?: return Decision.Allow
 
         if (rule.alwaysBlocked) {
-            return Decision.Block(t("${rule.label} is blocked.", "${rule.label} está bloqueada."), VerseTheme.DILIGENCE, false)
+            return Decision.Block(t("${rule.label} is blocked.", "${rule.label} está bloqueada."), VerseTheme.DILIGENCE, false, forceStop = true)
         }
 
         val isoDay = now.dayOfWeek.value            // 1 = Monday
         val minute = now.hour * 60 + now.minute
         rule.windows.firstOrNull { it.contains(isoDay, minute) }?.let {
-            return Decision.Block(t("${rule.label} is blocked now (${it.describe()}).", "${rule.label} está bloqueada ahora (${it.describe()})."), VerseTheme.DILIGENCE, false)
+            return Decision.Block(t("${rule.label} is blocked now (${it.describe()}).", "${rule.label} está bloqueada ahora (${it.describe()})."), VerseTheme.DILIGENCE, false, forceStop = false)
         }
 
         rule.dailyLimitMinutes?.let { limit ->
             if (usedMs >= limit * 60_000L + extraMs) {
                 val canExtend = extensionsUsed < s.extensionsPerDay
-                return Decision.Block(t("Today's $limit-minute limit for ${rule.label} is used up.", "Se agotó el límite de hoy de $limit minutos para ${rule.label}."), VerseTheme.DILIGENCE, canExtend)
+                return Decision.Block(t("Today's $limit-minute limit for ${rule.label} is used up.", "Se agotó el límite de hoy de $limit minutos para ${rule.label}."), VerseTheme.DILIGENCE, canExtend, forceStop = false)
             }
         }
         return Decision.Allow

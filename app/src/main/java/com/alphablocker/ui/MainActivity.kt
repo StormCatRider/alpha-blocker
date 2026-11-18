@@ -58,6 +58,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
@@ -140,16 +146,32 @@ private fun Root(unlocked: Boolean, onUnlock: () -> Unit) {
     }
 }
 
-/** Blue title bar with the Alpha Blocker logo, used at the top of every screen. */
+/**
+ * Title bar in the palette's brand color with the Alpha Blocker logo, used at
+ * the top of every screen. Sits below the status bar (statusBarsPadding) and
+ * is announced as a heading.
+ */
 @Composable
 fun Header(title: String) {
+    val brand = LocalBrand.current
     Row(
-        Modifier.fillMaxWidth().background(BrandBlue).statusBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+        Modifier
+            .fillMaxWidth()
+            .background(brand.brand)
+            .statusBarsPadding()
+            .heightIn(min = 64.dp)
+            .padding(horizontal = Space.lg, vertical = Space.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Image(painterResource(R.drawable.ic_logo), contentDescription = "Alpha Blocker logo", modifier = Modifier.size(32.dp))
-        Spacer(Modifier.width(12.dp))
-        Text(title, color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Image(painterResource(R.drawable.ic_logo), contentDescription = null, modifier = Modifier.size(32.dp))
+        Spacer(Modifier.width(Space.md))
+        Text(
+            title,
+            color = brand.onBrand,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.semantics { heading() },
+        )
     }
 }
 
@@ -274,9 +296,10 @@ private fun NewPinDialog(onDone: () -> Unit) {
 
 // -------------------------------------------------------------------- tabs
 
-private enum class Tab(private val en: String, private val es: String, val icon: String) {
-    STATUS("Status", "Estado", "◉"), APPS("Apps", "Apps", "▦"), FILTERS("Filters", "Filtros", "⛨"),
-    VERSES("Verses", "Versículos", "✝"), PROTECTION("Protect", "Proteger", "⚙");
+/** The five tabs, each with a line icon from AppIcons.kt (not text symbols). */
+private enum class Tab(private val en: String, private val es: String, val icon: ImageVector) {
+    STATUS("Status", "Estado", AppIcons.Status), APPS("Apps", "Apps", AppIcons.Apps), FILTERS("Filters", "Filtros", AppIcons.Filters),
+    VERSES("Verses", "Versículos", AppIcons.Verses), PROTECTION("Protect", "Proteger", AppIcons.Protect);
 
     val label: String get() = t(en, es)
 }
@@ -286,15 +309,22 @@ private fun HomeScaffold() {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     val state by Graph.store.state.collectAsState()
     Scaffold(
-        topBar = { Header("Alpha Blocker · ${Tab.entries[tab].label}") },
+        topBar = { Header(Tab.entries[tab].label) },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                 Tab.entries.forEachIndexed { i, t ->
                     NavigationBarItem(
                         selected = tab == i,
                         onClick = { tab = i },
-                        icon = { Text(t.icon, fontSize = 18.sp) },
-                        label = { Text(t.label) },
+                        icon = { Icon(t.icon, contentDescription = null) }, // the label names it
+                        label = { Text(t.label, maxLines = 1) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
                     )
                 }
             }

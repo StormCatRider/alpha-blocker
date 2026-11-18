@@ -61,7 +61,7 @@ fun StatusScreen(state: AppState) {
     var showRestrictedHelp by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp)) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Space.lg, vertical = Space.md)) {
 
         if (BankPause.isActive(state, now)) {
             Section(t("Banking pause", "Pausa para bancos")) {
@@ -240,5 +240,5 @@ private const val DONATE_URL = "https://ko-fi.com/stormcatrider"
 
 @Composable
 private fun Check(label: String, ok: Boolean) {
-    Text((if (ok) "✔ " else "✘ ") + label, color = if (ok) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error)
+    StatusLine(if (ok) CheckState.OK else CheckState.PROBLEM, label)
 }

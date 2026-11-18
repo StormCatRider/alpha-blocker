@@ -24,6 +24,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -125,27 +128,29 @@ fun BeforeYouStartChecklist(state: AppState) {
         )
         Spacer(Modifier.height(8.dp))
         items.forEach { item ->
-            Row(Modifier.padding(vertical = 4.dp)) {
-                Text(
-                    if (item.done) "✔" else "○",
-                    color = if (item.done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Bold,
+            Row(Modifier.padding(vertical = Space.sm)) {
+                Icon(
+                    if (item.done) AppIcons.Check else AppIcons.Circle,
+                    contentDescription = if (item.done) t("Done", "Hecho") else t("Not set", "Sin configurar"),
+                    tint = if (item.done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(22.dp),
                 )
-                Spacer(Modifier.width(8.dp))
-                Column {
-                    Text(item.title, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.width(Space.md))
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(item.title, style = MaterialTheme.typography.titleSmall)
                     Text(
                         t("Where: ", "Dónde: ") + item.where,
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
-                    Text(item.why, style = MaterialTheme.typography.bodySmall)
+                    Text(item.why, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
         Text(
-            t("○ = not set. Skip anything you don't need.", "○ = sin configurar. Omite lo que no necesites."),
-            style = MaterialTheme.typography.bodySmall,
+            t("An empty circle means not set. Skip anything you don't need.", "Un círculo vacío significa sin configurar. Omite lo que no necesites."),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
